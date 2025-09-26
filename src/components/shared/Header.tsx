@@ -14,21 +14,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { 
-  GraduationCap, 
-  Users, 
+  Users,
   User, 
   Settings, 
   Palette, 
   LogOut,
   Home,
   BookOpen,
-  Calendar,
-  BarChart3,
   FileText,
   Clock,
   Star,
   BookMarked,
-  TrendingUp
+  TrendingUp,
+  GraduationCap,
+  UserCheck,
+  ArrowRightLeft
 } from 'lucide-react'
 import { createSupabaseClient } from '@/lib/supabase'
 import { useUserRole } from '@/hooks/useUserRole'
@@ -41,7 +41,7 @@ export default function Header(props: HeaderProps = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createSupabaseClient()
-  const { userRole } = useUserRole()
+  const { userRole, setUserRole } = useUserRole()
   const [session, setSession] = useState<any>(null)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
@@ -80,16 +80,12 @@ export default function Header(props: HeaderProps = {}) {
   }, [])
 
   // Determinar página actual desde la ruta
-  const getCurrentPage = (): 'dashboard' | 'tareas' | 'progreso' | 'calendario' | 'estadisticas' | 'perfil' | 'profesor-dashboard' | 'profesor-clases' | 'profesor-estudiantes' | 'profesor-tareas' => {
+  const getCurrentPage = (): 'dashboard' | 'tareas' | 'progreso' | 'perfil' | 'profesor-dashboard' | 'profesor-clases' | 'profesor-estudiantes' | 'profesor-tareas' => {
     switch (pathname) {
       case '/tareas':
         return 'tareas'
       case '/progreso':
         return 'progreso'
-      case '/calendario':
-        return 'calendario'
-      case '/estadisticas':
-        return 'estadisticas'
       case '/perfil':
         return 'perfil'
       case '/profesor/dashboard':
@@ -120,6 +116,16 @@ export default function Header(props: HeaderProps = {}) {
     router.push('/')
   }
 
+  const handleRoleChange = (newRole: 'student' | 'teacher') => {
+    setUserRole(newRole)
+    // Redirigir a la página principal del rol seleccionado
+    if (newRole === 'teacher') {
+      router.push('/profesor/dashboard')
+    } else {
+      router.push('/')
+    }
+  }
+
   // Navegación para estudiantes
   const studentNavigationItems = [
     {
@@ -142,20 +148,6 @@ export default function Header(props: HeaderProps = {}) {
       icon: TrendingUp,
       href: '/progreso',
       active: currentPage === 'progreso'
-    },
-    {
-      key: 'calendario',
-      label: 'Calendario',
-      icon: Calendar,
-      href: '/calendario',
-      active: currentPage === 'calendario'
-    },
-    {
-      key: 'estadisticas',
-      label: 'Estadísticas',
-      icon: BarChart3,
-      href: '/estadisticas',
-      active: currentPage === 'estadisticas'
     }
   ]
 
@@ -209,7 +201,7 @@ export default function Header(props: HeaderProps = {}) {
             <div className="flex items-center gap-2">
               <BookMarked className="w-6 h-6 text-blue-600" />
               <h1 className="text-xl font-semibold text-gray-900">
-                Classroom Plus
+                Semillero Digital Dashboard
               </h1>
             </div>
 
@@ -236,21 +228,8 @@ export default function Header(props: HeaderProps = {}) {
             </nav>
           </div>
 
-          {/* Lado derecho - Acciones + Usuario */}
+          {/* Lado derecho - Usuario */}
           <div className="flex items-center space-x-3">
-            {/* Botones de acción rápida - Eliminados por no tener funcionalidad */}
-
-            {/* Badges de rol */}
-            <div className="hidden sm:flex items-center gap-2">
-              <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1">
-                <GraduationCap className="w-3 h-3 mr-1" />
-                Estudiante
-              </Button>
-              <Button variant="outline" className="px-3 py-1 text-gray-600">
-                <Users className="w-3 h-3 mr-1" />
-                Profesor
-              </Button>
-            </div>
 
             {/* Menú de usuario */}
             <DropdownMenu>
@@ -275,6 +254,32 @@ export default function Header(props: HeaderProps = {}) {
                     </p>
                   </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                {/* Selector de Rol */}
+                <div className="px-2 py-1">
+                  <p className="text-xs font-medium text-gray-500 mb-2">Cambiar Vista</p>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={userRole === 'student' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleRoleChange('student')}
+                      className="flex-1 h-8 text-xs"
+                    >
+                      <GraduationCap className="w-3 h-3 mr-1" />
+                      Estudiante
+                    </Button>
+                    <Button
+                      variant={userRole === 'teacher' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleRoleChange('teacher')}
+                      className="flex-1 h-8 text-xs"
+                    >
+                      <UserCheck className="w-3 h-3 mr-1" />
+                      Profesor
+                    </Button>
+                  </div>
+                </div>
                 <DropdownMenuSeparator />
                 
                 {/* Navegación móvil */}
