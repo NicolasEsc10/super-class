@@ -128,5 +128,5 @@ npm run dev
 ```
 
 La aplicación estará disponible en `http://localhost:3000`
-
+ 
 **Desarrollado por Nicolas Escobar**
