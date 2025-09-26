@@ -6,26 +6,45 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseApiClient()
     
+    // Obtener usuario autenticado de forma segura
     const {
       data: { user },
       error: userError
     } = await supabase.auth.getUser()
     
-    if (userError || !user) {
+    if (userError) {
+      console.error('Error al obtener usuario:', userError.message)
       return NextResponse.json({
         success: false,
-        error: 'No autorizado'
+        error: 'Error de autenticación: ' + userError.message
       }, { status: 401 })
     }
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session?.provider_token) {
+    if (!user) {
       return NextResponse.json({
         success: false,
-        error: 'Token de Google no encontrado'
+        error: 'No autorizado - Usuario no válido'
+      }, { status: 401 })
+    }
+
+    // Obtener sesión para el provider token
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession()
+    
+    if (sessionError || !session) {
+      console.error('Error al obtener sesión:', sessionError?.message || 'Sesión no encontrada')
+      return NextResponse.json({
+        success: false,
+        error: 'Sesión no válida'
+      }, { status: 401 })
+    }
+
+    if (!session.provider_token) {
+      return NextResponse.json({
+        success: false,
+        error: 'Token de Google no encontrado. Por favor, vuelve a iniciar sesión.'
       }, { status: 401 })
     }
 
@@ -38,8 +57,6 @@ export async function GET(request: NextRequest) {
       auth: auth
     })
 
-    console.log('📚 Obteniendo información básica de cursos...')
-
     // Obtener cursos básicos
     const coursesResponse = await classroom.courses.list({
       pageSize: 50,
@@ -50,17 +67,6 @@ export async function GET(request: NextRequest) {
     
     // Para cada curso, obtener toda la información básica disponible
     const detailedCourses = courses.map(course => {
-      console.log(`📖 Curso encontrado: ${course.name}`)
-      console.log(`   - ID: ${course.id}`)
-      console.log(`   - Sección: ${course.section || 'Sin sección'}`)
-      console.log(`   - Descripción: ${course.description || 'Sin descripción'}`)
-      console.log(`   - Aula: ${course.room || 'Sin aula'}`)
-      console.log(`   - Estado: ${course.courseState}`)
-      console.log(`   - Código de inscripción: ${course.enrollmentCode || 'No disponible'}`)
-      console.log(`   - Creado: ${course.creationTime}`)
-      console.log(`   - Actualizado: ${course.updateTime}`)
-      console.log(`   - Propietario: ${course.ownerId}`)
-      console.log(`   - Link: ${course.alternateLink}`)
       
       return {
         // Información básica del curso
@@ -88,8 +94,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log(`✅ Total de cursos procesados: ${detailedCourses.length}`)
-
     return NextResponse.json({
       success: true,
       data: {
@@ -102,11 +106,29 @@ export async function GET(request: NextRequest) {
         }
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error obteniendo información básica de cursos:', error)
+    
+    // Manejar errores específicos de autenticación
+    if (error.message?.includes('refresh_token_not_found') || 
+        error.message?.includes('Invalid Refresh Token')) {
+      return NextResponse.json({
+        success: false,
+        error: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.'
+      }, { status: 401 })
+    }
+    
+    // Manejar errores de la API de Google
+    if (error.code === 401 || error.status === 401) {
+      return NextResponse.json({
+        success: false,
+        error: 'Token de Google expirado. Por favor, vuelve a autorizar la aplicación.'
+      }, { status: 401 })
+    }
+    
     return NextResponse.json({
       success: false,
-      error: 'Error: ' + error.message
+      error: 'Error interno del servidor: ' + (error.message || 'Error desconocido')
     }, { status: 500 })
   }
 }

@@ -3,6 +3,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
+  // Solo procesar rutas de API protegidas para evitar llamadas innecesarias
+  const protectedRoutes = ['/api/classroom']
+  const isProtectedRoute = protectedRoutes.some(route => 
+    req.nextUrl.pathname.startsWith(route)
+  )
+
+  // Si no es una ruta protegida, continuar sin procesar
+  if (!isProtectedRoute) {
+    return NextResponse.next()
+  }
+
   let res = NextResponse.next({
     request: {
       headers: req.headers,
@@ -32,36 +43,44 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // Refrescar la sesión si está expirada
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    // Verificar sesión solo para rutas protegidas
+    const {
+      data: { session },
+      error
+    } = await supabase.auth.getSession()
 
-  // Rutas protegidas que requieren autenticación
-  const protectedRoutes = ['/api/classroom']
-  const isProtectedRoute = protectedRoutes.some(route => 
-    req.nextUrl.pathname.startsWith(route)
-  )
+    // Si hay error al obtener la sesión, permitir que la ruta API maneje el error
+    if (error) {
+      console.warn('Middleware: Error al obtener sesión:', error.message)
+      return res
+    }
 
-  // Si es una ruta protegida y no hay sesión, retornar error
-  if (isProtectedRoute && !session) {
-    return NextResponse.json(
-      { error: 'No autorizado' },
-      { status: 401 }
-    )
+    // Si no hay sesión, retornar error de autorización
+    if (!session) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'No autorizado - Sesión requerida' 
+        },
+        { status: 401 }
+      )
+    }
+
+    return res
+  } catch (error) {
+    // En caso de error, permitir que la ruta API maneje la autenticación
+    console.warn('Middleware: Error inesperado:', error)
+    return res
   }
-
-  return res
 }
 
 export const config = {
   matcher: [
     /*
-     * Coincidir con todas las rutas de solicitud excepto las que comienzan con:
-     * - _next/static (archivos estáticos)
-     * - _next/image (archivos de optimización de imágenes)
-     * - favicon.ico (archivo favicon)
+     * Solo aplicar middleware a rutas de API protegidas
+     * Excluir archivos estáticos y assets para mejor rendimiento
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/api/classroom/:path*',
   ],
 }
