@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
   // Solo procesar rutas de API protegidas para evitar llamadas innecesarias
-  const protectedRoutes = ['/api/classroom']
+  const protectedRoutes = ['/api/classroom', '/api/coordinator', '/api/teacher']
   const isProtectedRoute = protectedRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
@@ -82,5 +82,7 @@ export const config = {
      * Excluir archivos estáticos y assets para mejor rendimiento
      */
     '/api/classroom/:path*',
+    '/api/coordinator/:path*',
+    '/api/teacher/:path*',
   ],
 }

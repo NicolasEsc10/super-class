@@ -151,9 +151,9 @@ export async function GET(request: NextRequest) {
                 dueDate: dueDate?.toISOString(),
                 creationTime: work.creationTime!,
                 state: submission.state as any,
-                assignedGrade: submission.assignedGrade,
-                maxPoints: work.maxPoints,
-                alternateLink: work.alternateLink,
+                assignedGrade: submission.assignedGrade || undefined,
+                maxPoints: work.maxPoints || undefined,
+                alternateLink: work.alternateLink || undefined,
                 workType: work.workType as any || 'ASSIGNMENT',
                 isLate,
                 isPending

@@ -3,11 +3,12 @@ import { createClassroomService } from '@/lib/google-classroom'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
+    const { courseId } = await params
     const classroomService = await createClassroomService()
-    const courseDetails = await classroomService.getCourseDetails(params.courseId)
+    const courseDetails = await classroomService.getCourseDetails(courseId)
     
     return NextResponse.json({
       success: true,

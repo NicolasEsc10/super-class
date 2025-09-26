@@ -46,6 +46,7 @@ interface TeacherAssignment {
   lateCount: number
   averageGrade?: number
   completionRate: number
+  isActive: boolean
 }
 
 export async function GET(
@@ -199,7 +200,13 @@ export async function GET(
 
           // Verificar si está atrasada
           if (assignment.dueDate && submission.state !== 'TURNED_IN' && submission.state !== 'RETURNED') {
-            const dueDate = new Date(assignment.dueDate)
+            const dueDate = new Date(
+              assignment.dueDate.year!,
+              assignment.dueDate.month! - 1,
+              assignment.dueDate.day!,
+              assignment.dueTime?.hours || 23,
+              assignment.dueTime?.minutes || 59
+            )
             const now = new Date()
             if (now > dueDate) {
               lateCount++
@@ -225,20 +232,39 @@ export async function GET(
         alternateLink: assignment.alternateLink || undefined,
         creationTime: assignment.creationTime || '',
         updateTime: assignment.updateTime || '',
-        dueDate: assignment.dueDate || undefined,
-        dueTime: assignment.dueTime || undefined,
+        dueDate: assignment.dueDate ? new Date(
+          assignment.dueDate.year!,
+          assignment.dueDate.month! - 1,
+          assignment.dueDate.day!,
+          assignment.dueTime?.hours || 23,
+          assignment.dueTime?.minutes || 59
+        ).toISOString() : undefined,
+        dueTime: assignment.dueTime ? `${assignment.dueTime.hours?.toString().padStart(2, '0') || '00'}:${assignment.dueTime.minutes?.toString().padStart(2, '0') || '00'}` : undefined,
         scheduledTime: assignment.scheduledTime || undefined,
         maxPoints: assignment.maxPoints || undefined,
         workType: (assignment.workType as any) || 'ASSIGNMENT',
         associatedWithDeveloper: assignment.associatedWithDeveloper || false,
         assigneeMode: (assignment.assigneeMode as any) || 'ALL_STUDENTS',
-        individualStudentsOptions: assignment.individualStudentsOptions || undefined,
+        individualStudentsOptions: assignment.individualStudentsOptions ? {
+          studentIds: assignment.individualStudentsOptions.studentIds || []
+        } : undefined,
         submissionModificationMode: (assignment.submissionModificationMode as any) || 'MODIFIABLE_UNTIL_TURNED_IN',
         creatorUserId: assignment.creatorUserId || '',
         topicId: assignment.topicId || undefined,
-        gradeCategory: assignment.gradeCategory || undefined,
-        assignment: assignment.assignment || undefined,
-        multipleChoiceQuestion: assignment.multipleChoiceQuestion || undefined,
+        gradeCategory: assignment.gradeCategory ? {
+          id: assignment.gradeCategory.id || '',
+          name: assignment.gradeCategory.name || ''
+        } : undefined,
+        assignment: assignment.assignment ? {
+          studentWorkFolder: assignment.assignment.studentWorkFolder ? {
+            id: assignment.assignment.studentWorkFolder.id || '',
+            title: assignment.assignment.studentWorkFolder.title || '',
+            alternateLink: assignment.assignment.studentWorkFolder.alternateLink || undefined
+          } : undefined
+        } : undefined,
+        multipleChoiceQuestion: assignment.multipleChoiceQuestion ? {
+          choices: assignment.multipleChoiceQuestion.choices || []
+        } : undefined,
         // Estadísticas
         totalStudents,
         submittedCount,

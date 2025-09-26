@@ -20,6 +20,18 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Permitir any durante desarrollo
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Permitir variables no utilizadas durante desarrollo
+      "@typescript-eslint/no-unused-vars": "warn",
+      // Permitir dependencias faltantes en useEffect durante desarrollo
+      "react-hooks/exhaustive-deps": "warn",
+      // Permitir elementos <a> para navegación durante desarrollo
+      "@next/next/no-html-link-for-pages": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

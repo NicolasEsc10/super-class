@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import { createSupabaseClient } from '@/lib/supabase'
-import type { Course, Student, Teacher, CourseWork } from '@/lib/google-classroom'
+import type { Course, Student, CourseWork } from '@/lib/google-classroom'
+
+interface Teacher {
+  id: string
+  name: string
+  email: string
+}
+import { SupabaseSession } from '@/types/api'
 
 interface UseClassroomReturn {
   courses: Course[]
@@ -26,7 +33,7 @@ export function useClassroomCourses(): UseClassroomReturn {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<SupabaseSession | null>(null)
   
   const supabase = createSupabaseClient()
 
@@ -56,14 +63,14 @@ export function useClassroomCourses(): UseClassroomReturn {
   useEffect(() => {
     // Obtener sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+      setSession(session as any)
     })
 
     // Escuchar cambios en la autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+      setSession(session as any)
     })
 
     return () => subscription.unsubscribe()
@@ -91,7 +98,7 @@ export function useCourseDetails(courseId: string | null): UseCourseDetailsRetur
   const [courseWork, setCourseWork] = useState<CourseWork[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<SupabaseSession | null>(null)
   
   const supabase = createSupabaseClient()
 
@@ -124,14 +131,14 @@ export function useCourseDetails(courseId: string | null): UseCourseDetailsRetur
   useEffect(() => {
     // Obtener sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+      setSession(session as any)
     })
 
     // Escuchar cambios en la autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+      setSession(session as any)
     })
 
     return () => subscription.unsubscribe()
@@ -156,7 +163,16 @@ export function useCourseDetails(courseId: string | null): UseCourseDetailsRetur
  * Hook para obtener solo los estudiantes de un curso
  */
 export function useCourseStudents(courseId: string | null) {
-  const { data: session } = useSession()
+  const [session, setSession] = useState<SupabaseSession | null>(null)
+  const supabase = createSupabaseClient()
+  
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session as any)
+    }
+    getSession()
+  }, [])
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -200,7 +216,16 @@ export function useCourseStudents(courseId: string | null) {
  * Hook para obtener solo las tareas de un curso
  */
 export function useCoursework(courseId: string | null) {
-  const { data: session } = useSession()
+  const [session, setSession] = useState<SupabaseSession | null>(null)
+  const supabase = createSupabaseClient()
+  
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session as any)
+    }
+    getSession()
+  }, [])
   const [courseWork, setCourseWork] = useState<CourseWork[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

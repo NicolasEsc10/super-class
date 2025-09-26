@@ -119,8 +119,14 @@ export async function GET(request: NextRequest) {
 
                   // Verificar si está atrasada
                   if (assignment.dueDate && submission.state === 'TURNED_IN') {
-                    const dueDate = new Date(assignment.dueDate)
-                    const submissionDate = new Date(submission.submissionHistory?.[0]?.stateHistory?.[0]?.stateTimestamp || '')
+                    const dueDate = new Date(
+                      assignment.dueDate.year!,
+                      assignment.dueDate.month! - 1,
+                      assignment.dueDate.day!,
+                      assignment.dueTime?.hours || 23,
+                      assignment.dueTime?.minutes || 59
+                    )
+                    const submissionDate = new Date(submission.updateTime || '')
                     if (submissionDate > dueDate) {
                       lateAssignments++
                     }
@@ -133,7 +139,13 @@ export async function GET(request: NextRequest) {
                   }
                 } else if (assignment.dueDate) {
                   // Tarea no entregada y ya pasó la fecha de vencimiento
-                  const dueDate = new Date(assignment.dueDate)
+                  const dueDate = new Date(
+                    assignment.dueDate.year!,
+                    assignment.dueDate.month! - 1,
+                    assignment.dueDate.day!,
+                    assignment.dueTime?.hours || 23,
+                    assignment.dueTime?.minutes || 59
+                  )
                   const now = new Date()
                   if (now > dueDate) {
                     lateAssignments++
@@ -141,7 +153,13 @@ export async function GET(request: NextRequest) {
                 }
               } else if (assignment.dueDate) {
                 // No hay entrega y ya pasó la fecha de vencimiento
-                const dueDate = new Date(assignment.dueDate)
+                const dueDate = new Date(
+                  assignment.dueDate.year!,
+                  assignment.dueDate.month! - 1,
+                  assignment.dueDate.day!,
+                  assignment.dueTime?.hours || 23,
+                  assignment.dueTime?.minutes || 59
+                )
                 const now = new Date()
                 if (now > dueDate) {
                   lateAssignments++

@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
     const auth = new google.auth.OAuth2()
     auth.setCredentials({ access_token: session.provider_token })
 
-    let results = {
-      basicProfile: null,
-      courses: [],
-      classroomError: null,
+    const results = {
+      basicProfile: null as any,
+      courses: [] as any[],
+      classroomError: null as string | null,
       hasClassroomAccess: false
     }
 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
       console.error('❌ Error accediendo a Classroom API:', error)
-      results.classroomError = error.message
+      results.classroomError = error instanceof Error ? error.message : String(error)
       results.hasClassroomAccess = false
     }
 
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     console.error('Error en test completo:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error en el servidor: ' + error.message
+      error: 'Error en el servidor: ' + (error instanceof Error ? error.message : String(error))
     }, { status: 500 })
   }
 }

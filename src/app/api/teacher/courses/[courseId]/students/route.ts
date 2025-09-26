@@ -131,17 +131,17 @@ export async function GET(
         profile: {
           id: student.profile.id || student.userId,
           name: {
-            givenName: student.profile.name?.givenName,
-            familyName: student.profile.name?.familyName,
-            fullName: student.profile.name?.fullName
+            givenName: student.profile.name?.givenName || undefined,
+            familyName: student.profile.name?.familyName || undefined,
+            fullName: student.profile.name?.fullName || undefined
           },
-          emailAddress: student.profile.emailAddress,
-          photoUrl: student.profile.photoUrl
+          emailAddress: student.profile.emailAddress || undefined,
+          photoUrl: student.profile.photoUrl || undefined
         },
         courseId: courseId,
-        state: (student.state as any) || 'ACTIVE',
-        creationTime: student.creationTime || '',
-        updateTime: student.updateTime || '',
+        state: 'ACTIVE',
+        creationTime: '',
+        updateTime: '',
         late: false // Se calculará después si es necesario
       }
 

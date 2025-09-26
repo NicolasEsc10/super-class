@@ -115,8 +115,14 @@ export async function GET(request: NextRequest) {
                 // Determinar si está atrasada
                 let isLate = false
                 if (assignment.dueDate && submission.state === 'TURNED_IN') {
-                  const dueDate = new Date(assignment.dueDate)
-                  const submissionTime = new Date(submission.submissionHistory?.[0]?.stateHistory?.[0]?.stateTimestamp || submission.updateTime || '')
+                  const dueDate = new Date(
+                    assignment.dueDate.year!,
+                    assignment.dueDate.month! - 1,
+                    assignment.dueDate.day!,
+                    assignment.dueTime?.hours || 23,
+                    assignment.dueTime?.minutes || 59
+                  )
+                  const submissionTime = new Date(submission.updateTime || '')
                   isLate = submissionTime > dueDate
                 }
 
@@ -127,10 +133,10 @@ export async function GET(request: NextRequest) {
                   courseId: course.id,
                   assignmentTitle: assignment.title || 'Tarea sin título',
                   assignmentId: assignment.id,
-                  submissionTime: submission.submissionHistory?.[0]?.stateHistory?.[0]?.stateTimestamp || submission.updateTime || '',
+                  submissionTime: submission.updateTime || '',
                   isLate,
-                  grade: submission.assignedGrade,
-                  maxPoints: assignment.maxPoints,
+                  grade: submission.assignedGrade || undefined,
+                  maxPoints: assignment.maxPoints || undefined,
                   status: submission.state as 'TURNED_IN' | 'RETURNED'
                 })
               }

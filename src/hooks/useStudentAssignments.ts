@@ -14,7 +14,7 @@ export interface StudentAssignment {
   maxPoints?: number
   alternateLink?: string
   workType: 'ASSIGNMENT' | 'SHORT_ANSWER_QUESTION' | 'MULTIPLE_CHOICE_QUESTION'
-  materials?: any[]
+  materials?: unknown[]
   isLate: boolean
   isPending: boolean
 }
@@ -107,7 +107,7 @@ export function useStudentAssignments(): UseStudentAssignmentsReturn {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<{ user: { id: string; email?: string } } | null>(null)
   const [lastFetch, setLastFetch] = useState<number>(0)
   
   const supabase = createSupabaseClient()
@@ -165,7 +165,7 @@ export function useStudentAssignments(): UseStudentAssignmentsReturn {
         setError(data.error || 'Error al obtener las tareas')
         console.error('Error cargando tareas:', data.error)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Error de conexión')
       console.error('Error fetching assignments:', err)
     } finally {

@@ -28,13 +28,15 @@ import {
   TrendingUp,
   GraduationCap,
   UserCheck,
-  ArrowRightLeft
+  ArrowRightLeft,
+  BarChart3
 } from 'lucide-react'
 import { createSupabaseClient } from '@/lib/supabase'
 import { useUserRole } from '@/hooks/useUserRole'
+import { SupabaseSession } from '@/types/api'
 
 interface HeaderProps {
-  // Props opcionales para futuro uso
+  className?: string
 }
 
 export default function Header(props: HeaderProps = {}) {
@@ -42,14 +44,14 @@ export default function Header(props: HeaderProps = {}) {
   const pathname = usePathname()
   const supabase = createSupabaseClient()
   const { userRole, setUserRole } = useUserRole()
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<SupabaseSession | null>(null)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [avatarSrc, setAvatarSrc] = useState('')
   const [initials, setInitials] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const updateUserData = (session: any) => {
+  const updateUserData = (session: SupabaseSession) => {
     if (session?.user) {
       const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Usuario'
       const email = session.user.email || ''
@@ -65,22 +67,22 @@ export default function Header(props: HeaderProps = {}) {
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      updateUserData(session)
+      setSession(session as any)
+      updateUserData(session as any)
     }
 
     getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      updateUserData(session)
+      setSession(session as any)
+      updateUserData(session as any)
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
   // Determinar página actual desde la ruta
-  const getCurrentPage = (): 'dashboard' | 'tareas' | 'progreso' | 'perfil' | 'profesor-dashboard' | 'profesor-clases' | 'profesor-estudiantes' | 'profesor-tareas' => {
+  const getCurrentPage = (): 'dashboard' | 'tareas' | 'progreso' | 'perfil' | 'profesor-dashboard' | 'profesor-clases' | 'profesor-estudiantes' | 'profesor-tareas' | 'coordinador' => {
     switch (pathname) {
       case '/tareas':
         return 'tareas'
@@ -96,6 +98,8 @@ export default function Header(props: HeaderProps = {}) {
         return 'profesor-estudiantes'
       case '/profesor/tareas':
         return 'profesor-tareas'
+      case '/coordinador':
+        return 'coordinador'
       default:
         return 'dashboard'
     }
@@ -116,11 +120,13 @@ export default function Header(props: HeaderProps = {}) {
     router.push('/')
   }
 
-  const handleRoleChange = (newRole: 'student' | 'teacher') => {
+  const handleRoleChange = (newRole: 'student' | 'teacher' | 'coordinator') => {
     setUserRole(newRole)
     // Redirigir a la página principal del rol seleccionado
     if (newRole === 'teacher') {
       router.push('/profesor/dashboard')
+    } else if (newRole === 'coordinator') {
+      router.push('/coordinador')
     } else {
       router.push('/')
     }
@@ -183,8 +189,21 @@ export default function Header(props: HeaderProps = {}) {
     }
   ]
 
+  // Navegación para coordinadores
+  const coordinatorNavigationItems = [
+    {
+      key: 'coordinador',
+      label: 'Panel Coordinador',
+      icon: BarChart3,
+      href: '/coordinador',
+      active: currentPage === 'coordinador'
+    }
+  ]
+
   // Seleccionar navegación basada en el rol
-  const navigationItems = userRole === 'teacher' ? teacherNavigationItems : studentNavigationItems
+  const navigationItems = userRole === 'teacher' ? teacherNavigationItems : 
+                         userRole === 'coordinator' ? coordinatorNavigationItems : 
+                         studentNavigationItems
 
 
   // Solo mostrar header cuando hay sesión activa
@@ -277,6 +296,15 @@ export default function Header(props: HeaderProps = {}) {
                     >
                       <UserCheck className="w-3 h-3 mr-1" />
                       Profesor
+                    </Button>
+                    <Button
+                      variant={userRole === 'coordinator' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleRoleChange('coordinator')}
+                      className="flex-1 h-8 text-xs"
+                    >
+                      <BarChart3 className="w-3 h-3 mr-1" />
+                      Coordinador
                     </Button>
                   </div>
                 </div>

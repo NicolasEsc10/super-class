@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     console.error('Error en test de conexión:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error en el servidor: ' + error.message
+      error: 'Error en el servidor: ' + (error instanceof Error ? error.message : String(error))
     }, { status: 500 })
   }
 }

@@ -85,7 +85,7 @@ export default function ClassroomDashboard() {
           setSession(session)
           setIsConnected(!!session)
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error inesperado al obtener sesión:', error)
         setSession(null)
         setIsConnected(false)
@@ -139,6 +139,8 @@ export default function ClassroomDashboard() {
   useEffect(() => {
     if (userRole === 'teacher') {
       window.location.href = '/profesor/dashboard'
+    } else if (userRole === 'coordinator') {
+      window.location.href = '/coordinador'
     }
   }, [userRole])
 
@@ -221,11 +223,12 @@ export default function ClassroomDashboard() {
           await signOut()
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error de red al cargar cursos:', error)
       
       // Si hay error de red y parece ser de autenticación, manejar apropiadamente
-      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
         console.warn('Posible problema de conectividad o autenticación')
       }
     } finally {
@@ -267,7 +270,7 @@ export default function ClassroomDashboard() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
               <BookMarked className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Classroom Plus</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Semillero Digital Dashboard</h1>
             </div>
             <p className="text-gray-600">
               Gestiona tus tareas de Google Classroom de manera inteligente

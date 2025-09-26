@@ -15,7 +15,7 @@ interface StudentAssignment {
   maxPoints?: number
   alternateLink?: string
   workType: 'ASSIGNMENT' | 'SHORT_ANSWER_QUESTION' | 'MULTIPLE_CHOICE_QUESTION'
-  materials?: any[]
+  materials?: unknown[]
   isLate: boolean
   isPending: boolean
 }
@@ -112,13 +112,13 @@ export async function GET(request: NextRequest) {
                 courseId: course.id!,
                 courseName: course.name!,
                 title: work.title!,
-                description: work.description,
+                description: work.description || undefined,
                 dueDate: dueDate?.toISOString(),
                 creationTime: work.creationTime!,
                 state: submission.state as any,
-                assignedGrade: submission.assignedGrade,
-                maxPoints: work.maxPoints,
-                alternateLink: work.alternateLink,
+                assignedGrade: submission.assignedGrade || undefined,
+                maxPoints: work.maxPoints || undefined,
+                alternateLink: work.alternateLink || undefined,
                 workType: work.workType as any,
                 materials: work.materials,
                 isLate,
@@ -166,10 +166,11 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error obteniendo tareas del estudiante:', error)
     
-    if (error.message?.includes('insufficient authentication scopes')) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('insufficient authentication scopes')) {
       return NextResponse.json({
         success: false,
         error: 'Permisos insuficientes. Por favor, vuelve a autorizar la aplicación.'

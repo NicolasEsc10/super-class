@@ -297,7 +297,7 @@ export default function ProfesorEstudiantesPage() {
               <div className="flex gap-2">
                 <select
                   value={filterRisk}
-                  onChange={(e) => setFilterRisk(e.target.value as any)}
+                  onChange={(e) => setFilterRisk(e.target.value as 'all' | 'at-risk' | 'safe')}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   aria-label="Filtrar estudiantes por riesgo"
                 >
@@ -308,7 +308,7 @@ export default function ProfesorEstudiantesPage() {
 
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as 'name' | 'grade' | 'completion' | 'risk')}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   aria-label="Ordenar estudiantes"
                 >

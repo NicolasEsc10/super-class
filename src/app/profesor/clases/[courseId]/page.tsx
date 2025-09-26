@@ -40,7 +40,16 @@ export default function ProfesorClaseDetallePage() {
     fetchStudents
   } = useTeacherData()
 
-  const [currentCourse, setCurrentCourse] = useState<any>(null)
+  const [currentCourse, setCurrentCourse] = useState<{ 
+    id: string; 
+    name: string; 
+    description?: string;
+    section?: string;
+    courseState?: string;
+    enrollmentCode?: string;
+    room?: string;
+    alternateLink?: string;
+  } | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students'>('overview')
 
   useEffect(() => {
@@ -50,7 +59,18 @@ export default function ProfesorClaseDetallePage() {
   useEffect(() => {
     if (courses.length > 0) {
       const course = courses.find(c => c.id === courseId)
-      setCurrentCourse(course)
+      if (course) {
+        setCurrentCourse({
+          id: course.id,
+          name: course.name,
+          description: course.description,
+          section: course.section,
+          courseState: course.courseState,
+          enrollmentCode: course.enrollmentCode,
+          room: course.room,
+          alternateLink: course.alternateLink
+        })
+      }
     }
   }, [courses, courseId])
 

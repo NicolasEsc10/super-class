@@ -106,12 +106,13 @@ export async function GET(request: NextRequest) {
         }
       }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error obteniendo información básica de cursos:', error)
     
     // Manejar errores específicos de autenticación
-    if (error.message?.includes('refresh_token_not_found') || 
-        error.message?.includes('Invalid Refresh Token')) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('refresh_token_not_found') || 
+        errorMessage.includes('Invalid Refresh Token')) {
       return NextResponse.json({
         success: false,
         error: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.'
@@ -119,7 +120,9 @@ export async function GET(request: NextRequest) {
     }
     
     // Manejar errores de la API de Google
-    if (error.code === 401 || error.status === 401) {
+    const errorCode = (error as any)?.code || (error as any)?.status
+    
+    if (errorCode === 401) {
       return NextResponse.json({
         success: false,
         error: 'Token de Google expirado. Por favor, vuelve a autorizar la aplicación.'
@@ -128,7 +131,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       success: false,
-      error: 'Error interno del servidor: ' + (error.message || 'Error desconocido')
+      error: 'Error interno del servidor: ' + (error instanceof Error ? error.message : 'Error desconocido')
     }, { status: 500 })
   }
 }

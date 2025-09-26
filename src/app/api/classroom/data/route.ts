@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createSupabaseApiClient } from '@/lib/supabase-api'
 import { google } from 'googleapis'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createSupabaseApiClient()
     
@@ -58,32 +58,43 @@ export async function GET(request: NextRequest) {
           console.log(`📖 Procesando curso: ${course.name}`)
 
           // Intentar obtener estudiantes (puede fallar si no tienes permisos)
-          let students = []
+          let students: any[] = []
           try {
+            if (!course.id) {
+              throw new Error('ID del curso no disponible')
+            }
             const studentsResponse = await classroom.courses.students.list({
               courseId: course.id,
               pageSize: 100
             })
             students = studentsResponse.data.students || []
           } catch (error) {
-            console.warn(`⚠️ Sin permisos para estudiantes en ${course.name}:`, error.message)
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            console.warn(`⚠️ Sin permisos para estudiantes en ${course.name}:`, errorMessage)
           }
 
           // Intentar obtener profesores
-          let teachers = []
+          let teachers: any[] = []
           try {
+            if (!course.id) {
+              throw new Error('ID del curso no disponible')
+            }
             const teachersResponse = await classroom.courses.teachers.list({
               courseId: course.id,
               pageSize: 100
             })
             teachers = teachersResponse.data.teachers || []
           } catch (error) {
-            console.warn(`⚠️ Sin permisos para profesores en ${course.name}:`, error.message)
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            console.warn(`⚠️ Sin permisos para profesores en ${course.name}:`, errorMessage)
           }
 
           // Intentar obtener tareas
-          let coursework = []
+          let coursework: any[] = []
           try {
+            if (!course.id) {
+              throw new Error('ID del curso no disponible')
+            }
             const courseworkResponse = await classroom.courses.courseWork.list({
               courseId: course.id,
               pageSize: 100,
@@ -91,13 +102,17 @@ export async function GET(request: NextRequest) {
             })
             coursework = courseworkResponse.data.courseWork || []
           } catch (error) {
-            console.warn(`⚠️ Sin permisos para tareas en ${course.name}:`, error.message)
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+            console.warn(`⚠️ Sin permisos para tareas en ${course.name}:`, errorMessage)
           }
 
           // Obtener entregas para cada tarea (solo las primeras 3 tareas para no saturar)
           const courseworkWithSubmissions = await Promise.all(
-            coursework.slice(0, 3).map(async (work) => {
+            coursework.slice(0, 3).map(async (work: any) => {
               try {
+                if (!course.id || !work.id) {
+                  throw new Error('ID del curso o tarea no disponible')
+                }
                 const submissionsResponse = await classroom.courses.courseWork.studentSubmissions.list({
                   courseId: course.id,
                   courseWorkId: work.id,
@@ -107,7 +122,7 @@ export async function GET(request: NextRequest) {
 
                 return {
                   ...work,
-                  submissions: submissions.map(sub => ({
+                  submissions: submissions.map((sub: any) => ({
                     id: sub.id,
                     userId: sub.userId,
                     state: sub.state,
@@ -116,7 +131,8 @@ export async function GET(request: NextRequest) {
                   }))
                 }
               } catch (error) {
-                console.warn(`⚠️ Error obteniendo entregas para tarea ${work.id}:`, error.message)
+                const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+                console.warn(`⚠️ Error obteniendo entregas para tarea ${work.id}:`, errorMessage)
                 return {
                   ...work,
                   submissions: []
@@ -141,7 +157,7 @@ export async function GET(request: NextRequest) {
             enrollmentCode: course.enrollmentCode,
             courseState: course.courseState,
             alternateLink: course.alternateLink,
-            students: students.map(student => ({
+            students: students.map((student: any) => ({
               userId: student.userId,
               profile: {
                 id: student.profile?.id,
@@ -154,7 +170,7 @@ export async function GET(request: NextRequest) {
                 photoUrl: student.profile?.photoUrl
               }
             })),
-            teachers: teachers.map(teacher => ({
+            teachers: teachers.map((teacher: any) => ({
               userId: teacher.userId,
               profile: {
                 id: teacher.profile?.id,
@@ -167,7 +183,7 @@ export async function GET(request: NextRequest) {
                 photoUrl: teacher.profile?.photoUrl
               }
             })),
-            coursework: courseworkWithSubmissions.map(work => ({
+            coursework: courseworkWithSubmissions.map((work: any) => ({
               id: work.id,
               title: work.title,
               description: work.description,
@@ -184,11 +200,12 @@ export async function GET(request: NextRequest) {
             }))
           }
         } catch (error) {
-          console.error(`❌ Error procesando curso ${course.name}:`, error.message)
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+          console.error(`❌ Error procesando curso ${course.name}:`, errorMessage)
           return {
             id: course.id,
             name: course.name,
-            error: error.message,
+            error: errorMessage,
             students: [],
             teachers: [],
             coursework: []
@@ -204,7 +221,7 @@ export async function GET(request: NextRequest) {
       totalTeachers: detailedCourses.reduce((sum, course) => sum + course.teachers.length, 0),
       totalCoursework: detailedCourses.reduce((sum, course) => sum + course.coursework.length, 0),
       totalSubmissions: detailedCourses.reduce((sum, course) => 
-        sum + course.coursework.reduce((subSum, work) => subSum + (work.submissions?.length || 0), 0), 0
+        sum + course.coursework.reduce((subSum: number, work: any) => subSum + (work.submissions?.length || 0), 0), 0
       )
     }
 
@@ -219,10 +236,11 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
     console.error('❌ Error general obteniendo datos de Classroom:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error obteniendo datos: ' + error.message
+      error: 'Error obteniendo datos: ' + errorMessage
     }, { status: 500 })
   }
 }

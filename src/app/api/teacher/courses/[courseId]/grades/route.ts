@@ -45,7 +45,7 @@ export async function GET(
     // Verificar que el usuario es profesor del curso
     try {
       const course = await classroom.courses.get({ id: courseId })
-      if (!course.data.teacherGroupEmail?.includes(session.user.email)) {
+      if (!course.data.teacherGroupEmail?.includes(session.user.email || '')) {
         return NextResponse.json({ error: 'No tienes permisos para ver este curso' }, { status: 403 })
       }
     } catch (error) {

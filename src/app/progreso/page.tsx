@@ -5,6 +5,6 @@ export default function ProgresoPage() {
 }
 
 export const metadata = {
-  title: 'Seguimiento del Progreso - Classroom Plus',
+  title: 'Seguimiento del Progreso - Semillero Digital Dashboard',
   description: 'Vista consolidada del progreso académico de estudiantes, profesores y coordinadores'
 }

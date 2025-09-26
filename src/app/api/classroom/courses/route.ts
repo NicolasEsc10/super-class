@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createSupabaseApiClient } from '@/lib/supabase-api'
 import { google } from 'googleapis'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabase = createSupabaseApiClient(request)
+    const supabase = await createSupabaseApiClient()
     
     const {
       data: { session },
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       courseStates: ['ACTIVE']
     })
 
-    const courses = response.data.courses?.map((course: any) => ({
+    const courses = response.data.courses?.map((course) => ({
       id: course.id,
       name: course.name,
       section: course.section,

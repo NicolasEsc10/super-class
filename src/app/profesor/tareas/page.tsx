@@ -63,7 +63,7 @@ export default function ProfesorTareasPage() {
         const data = await response.json()
         
         if (data.success && data.data.assignments) {
-          const courseAssignments = data.data.assignments.map((assignment: any) => ({
+          const courseAssignments = data.data.assignments.map((assignment: { id: string; title: string; description?: string; dueDate?: string; maxPoints?: number; state?: string; workType?: string; alternateLink?: string; creationTime?: string; updateTime?: string; materials?: unknown[]; assignedGrade?: number; late?: boolean; isPending?: boolean }) => ({
             ...assignment,
             courseId: course.id,
             courseName: course.name
@@ -219,7 +219,7 @@ export default function ProfesorTareasPage() {
               <div className="flex gap-2">
                 <select
                   value={filterState}
-                  onChange={(e) => setFilterState(e.target.value as any)}
+                  onChange={(e) => setFilterState(e.target.value as 'all' | 'active' | 'completed' | 'draft')}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   aria-label="Filtrar tareas por estado"
                 >
@@ -231,7 +231,7 @@ export default function ProfesorTareasPage() {
 
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as 'title' | 'dueDate' | 'course' | 'completion')}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   aria-label="Ordenar tareas"
                 >

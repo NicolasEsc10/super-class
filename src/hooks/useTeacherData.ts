@@ -134,7 +134,7 @@ export function useTeacherData(): UseTeacherDataReturn {
       } else {
         setErrorCourses(data.error)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setErrorCourses('Error al cargar cursos')
     } finally {
       setLoadingCourses(false)
@@ -155,7 +155,7 @@ export function useTeacherData(): UseTeacherDataReturn {
       } else {
         setErrorAssignments(data.error)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setErrorAssignments('Error al cargar tareas')
     } finally {
       setLoadingAssignments(false)
@@ -176,7 +176,7 @@ export function useTeacherData(): UseTeacherDataReturn {
       } else {
         setErrorStudents(data.error)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setErrorStudents('Error al cargar estudiantes')
     } finally {
       setLoadingStudents(false)
@@ -197,7 +197,7 @@ export function useTeacherData(): UseTeacherDataReturn {
       } else {
         setErrorGrades(data.error)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setErrorGrades('Error al cargar calificaciones')
     } finally {
       setLoadingGrades(false)
