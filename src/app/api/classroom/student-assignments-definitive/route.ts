@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       auth: auth
     })
 
-    console.log('🔍 Obteniendo tareas del estudiante (método definitivo)...')
+    // Obteniendo tareas del estudiante
 
     const studentAssignments: StudentAssignment[] = []
     const now = new Date()
@@ -69,12 +69,11 @@ export async function GET(request: NextRequest) {
     })
 
     const courses = coursesResponse.data.courses || []
-    console.log(`📚 Encontrados ${courses.length} cursos`)
 
     // PASO 2: Para cada curso, intentar diferentes enfoques
     for (const course of courses) {
       try {
-        console.log(`🔍 Procesando curso: ${course.name}`)
+        // Procesando curso
         
         // VERIFICAR PRIMERO SI SOY ESTUDIANTE (no profesor)
         let isStudent = false
@@ -84,9 +83,9 @@ export async function GET(request: NextRequest) {
             userId: 'me'
           })
           isStudent = true
-          console.log(`✅ Confirmado como estudiante en: ${course.name}`)
+          // Confirmado como estudiante
         } catch (studentError: any) {
-          console.log(`❌ No soy estudiante en el curso: ${course.name}`)
+          // No soy estudiante en este curso
           continue // Saltar este curso si no soy estudiante
         }
 
@@ -103,10 +102,10 @@ export async function GET(request: NextRequest) {
             pageSize: 50
           })
           coursework = courseworkResponse.data.courseWork || []
-          console.log(`📝 Encontradas ${coursework.length} tareas en ${course.name} (como estudiante)`)
+          // Tareas encontradas
         } catch (courseworkError: any) {
           if (courseworkError.code === 403) {
-            console.log(`⚠️ Sin permisos para ver tareas en "${course.name}" como estudiante`)
+            // Sin permisos para ver tareas
             continue
           } else {
             throw courseworkError
@@ -160,7 +159,7 @@ export async function GET(request: NextRequest) {
                 isPending
               }
 
-              console.log(`✅ Agregada tarea con entrega: ${work.title} (Estado: ${submission.state})`)
+              // Tarea agregada con entrega
             } else {
               // NO HAY ENTREGA: Crear entrega virtual como "NEW" (pendiente)
               const isLate = dueDate ? now > dueDate : false
@@ -183,16 +182,16 @@ export async function GET(request: NextRequest) {
                 isPending
               }
 
-              console.log(`✅ Agregada tarea SIN entrega: ${work.title} (Estado: NEW - Pendiente)`)
+              // Tarea agregada sin entrega
             }
 
             studentAssignments.push(assignment)
           } catch (submissionError: any) {
-            console.warn(`⚠️ Error obteniendo entrega para "${work.title}": ${submissionError.message}`)
+            // Error obteniendo entrega
           }
         }
       } catch (courseError: any) {
-        console.warn(`⚠️ Error procesando curso "${course.name}": ${courseError.message}`)
+        // Error procesando curso
       }
     }
 
@@ -209,11 +208,7 @@ export async function GET(request: NextRequest) {
     const completed = studentAssignments.filter(a => a.state === 'TURNED_IN' || a.state === 'RETURNED')
     const late = studentAssignments.filter(a => a.isLate)
 
-    console.log(`📊 Estadísticas finales: ${pending.length} pendientes, ${completed.length} completadas, ${late.length} atrasadas`)
-    console.log(`📋 Tareas encontradas:`)
-    studentAssignments.forEach(assignment => {
-      console.log(`  - ${assignment.title} (${assignment.courseName}) - ${assignment.state}`)
-    })
+    // Estadísticas procesadas
 
     return NextResponse.json({
       success: true,
@@ -229,7 +224,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('Error general obteniendo tareas:', error)
+    console.error('Error obteniendo tareas:', error.message)
     
     return NextResponse.json({
       success: false,

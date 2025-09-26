@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       auth: auth
     })
 
-    console.log('🔍 Obteniendo tareas del estudiante...')
+    // Obteniendo tareas del estudiante
 
     // Obtener todos los cursos activos donde el usuario participa
     const coursesResponse = await classroom.courses.list({
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     })
 
     const courses = coursesResponse.data.courses || []
-    console.log(`📚 Encontrados ${courses.length} cursos como estudiante`)
+    // Cursos encontrados
 
     const studentAssignments: StudentAssignment[] = []
     const now = new Date()

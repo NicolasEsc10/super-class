@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react'
 import { createSupabaseClient } from '@/lib/supabase'
 import { useClassroomCourses, useCourseDetails } from '@/hooks/useClassroom'
 import { useStudentAssignments, assignmentUtils } from '@/hooks/useStudentAssignments'
+import { useUserRole } from '@/hooks/useUserRole'
+import RoleSelectionDialog from '@/components/RoleSelectionDialog'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import Header from '@/components/shared/Header'
 import { 
   Bell, 
   Settings, 
@@ -47,6 +48,10 @@ export default function ClassroomDashboard() {
   const [courses, setCourses] = useState<any[]>([])
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [coursesLoaded, setCoursesLoaded] = useState(false) // Para evitar recargas innecesarias
+
+  // Hook para manejar el rol del usuario
+  const { userRole, setUserRole, loading: roleLoading } = useUserRole()
+  const [showRoleDialog, setShowRoleDialog] = useState(false)
 
   // Hook para tareas del estudiante
   const { 
@@ -123,6 +128,20 @@ export default function ClassroomDashboard() {
     }
   }, [])
 
+  // Mostrar diálogo de selección de rol cuando el usuario esté autenticado pero no tenga rol
+  useEffect(() => {
+    if (session && isConnected && !roleLoading && !userRole) {
+      setShowRoleDialog(true)
+    }
+  }, [session, isConnected, roleLoading, userRole])
+
+  // Redirigir a la vista correcta basada en el rol
+  useEffect(() => {
+    if (userRole === 'teacher') {
+      window.location.href = '/profesor/dashboard'
+    }
+  }, [userRole])
+
   // Cargar cursos automáticamente cuando el usuario se conecte (solo una vez)
   useEffect(() => {
     if (session && isConnected && !coursesLoaded && !loadingCourses) {
@@ -138,11 +157,17 @@ export default function ClassroomDashboard() {
           'openid',
           'https://www.googleapis.com/auth/userinfo.email',
           'https://www.googleapis.com/auth/userinfo.profile',
+          // Scopes para estudiantes
           'https://www.googleapis.com/auth/classroom.courses.readonly',
           'https://www.googleapis.com/auth/classroom.rosters.readonly',
           'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
           'https://www.googleapis.com/auth/classroom.student-submissions.me.readonly',
-          'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly'
+          'https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly',
+          // Scopes para profesores (solo los válidos según el error)
+          'https://www.googleapis.com/auth/classroom.courses',
+          'https://www.googleapis.com/auth/classroom.coursework.me',
+          'https://www.googleapis.com/auth/classroom.coursework.students',
+          'https://www.googleapis.com/auth/classroom.rosters'
         ].join(' ')
       }
     })
@@ -157,6 +182,21 @@ export default function ClassroomDashboard() {
     if (error) {
       console.error('Error al cerrar sesión:', error)
     }
+  }
+
+  // Manejar selección de rol
+  const handleRoleSelect = (role: 'student' | 'teacher' | 'coordinator') => {
+    setUserRole(role)
+    setShowRoleDialog(false)
+  }
+
+  // Obtener nombre del usuario para el diálogo
+  const getUserName = () => {
+    if (!session?.user) return undefined
+    return session.user.user_metadata?.full_name || 
+           session.user.user_metadata?.name ||
+           session.user.email?.split('@')[0] || 
+           'Usuario'
   }
 
   // Función para cargar cursos automáticamente (solo donde soy estudiante)
@@ -198,8 +238,6 @@ export default function ClassroomDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        
         {/* Contenido de loading */}
         <main className="pt-4">
           <div className="max-w-7xl mx-auto px-6 py-8">
@@ -290,8 +328,6 @@ export default function ClassroomDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-
       {/* Contenido principal con espaciado para header fijo */}
       <main className="pt-4">
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -664,6 +700,13 @@ export default function ClassroomDashboard() {
         </div>
         </div>
       </main>
+
+      {/* Diálogo de selección de rol */}
+      <RoleSelectionDialog
+        isOpen={showRoleDialog}
+        onRoleSelect={handleRoleSelect}
+        userName={getUserName()}
+      />
     </div>
   )
 }

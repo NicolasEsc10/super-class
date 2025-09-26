@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import StudentAssignments from '@/components/StudentAssignments'
-import Header from '@/components/shared/Header'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
@@ -11,8 +10,6 @@ export default function TareasPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       {/* Espaciado para compensar header fijo */}
       <main className="pt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

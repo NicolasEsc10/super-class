@@ -23,16 +23,15 @@ import {
   Home,
   BookOpen,
   Calendar,
-  Bell,
-  Search,
-  Plus,
   BarChart3,
   FileText,
   Clock,
   Star,
-  BookMarked
+  BookMarked,
+  TrendingUp
 } from 'lucide-react'
 import { createSupabaseClient } from '@/lib/supabase'
+import { useUserRole } from '@/hooks/useUserRole'
 
 interface HeaderProps {
   // Props opcionales para futuro uso
@@ -42,6 +41,7 @@ export default function Header(props: HeaderProps = {}) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createSupabaseClient()
+  const { userRole } = useUserRole()
   const [session, setSession] = useState<any>(null)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
@@ -80,16 +80,26 @@ export default function Header(props: HeaderProps = {}) {
   }, [])
 
   // Determinar página actual desde la ruta
-  const getCurrentPage = (): 'dashboard' | 'tareas' | 'calendario' | 'estadisticas' | 'perfil' => {
+  const getCurrentPage = (): 'dashboard' | 'tareas' | 'progreso' | 'calendario' | 'estadisticas' | 'perfil' | 'profesor-dashboard' | 'profesor-clases' | 'profesor-estudiantes' | 'profesor-tareas' => {
     switch (pathname) {
       case '/tareas':
         return 'tareas'
+      case '/progreso':
+        return 'progreso'
       case '/calendario':
         return 'calendario'
       case '/estadisticas':
         return 'estadisticas'
       case '/perfil':
         return 'perfil'
+      case '/profesor/dashboard':
+        return 'profesor-dashboard'
+      case '/profesor/clases':
+        return 'profesor-clases'
+      case '/profesor/estudiantes':
+        return 'profesor-estudiantes'
+      case '/profesor/tareas':
+        return 'profesor-tareas'
       default:
         return 'dashboard'
     }
@@ -110,7 +120,8 @@ export default function Header(props: HeaderProps = {}) {
     router.push('/')
   }
 
-  const navigationItems = [
+  // Navegación para estudiantes
+  const studentNavigationItems = [
     {
       key: 'dashboard',
       label: 'Dashboard',
@@ -124,6 +135,13 @@ export default function Header(props: HeaderProps = {}) {
       icon: FileText,
       href: '/tareas',
       active: currentPage === 'tareas'
+    },
+    {
+      key: 'progreso',
+      label: 'Seguimiento',
+      icon: TrendingUp,
+      href: '/progreso',
+      active: currentPage === 'progreso'
     },
     {
       key: 'calendario',
@@ -140,6 +158,41 @@ export default function Header(props: HeaderProps = {}) {
       active: currentPage === 'estadisticas'
     }
   ]
+
+  // Navegación para profesores
+  const teacherNavigationItems = [
+    {
+      key: 'profesor-dashboard',
+      label: 'Dashboard',
+      icon: Home,
+      href: '/profesor/dashboard',
+      active: currentPage === 'profesor-dashboard'
+    },
+    {
+      key: 'profesor-clases',
+      label: 'Mis Clases',
+      icon: BookOpen,
+      href: '/profesor/clases',
+      active: currentPage === 'profesor-clases'
+    },
+    {
+      key: 'profesor-estudiantes',
+      label: 'Estudiantes',
+      icon: Users,
+      href: '/profesor/estudiantes',
+      active: currentPage === 'profesor-estudiantes'
+    },
+    {
+      key: 'profesor-tareas',
+      label: 'Tareas',
+      icon: FileText,
+      href: '/profesor/tareas',
+      active: currentPage === 'profesor-tareas'
+    }
+  ]
+
+  // Seleccionar navegación basada en el rol
+  const navigationItems = userRole === 'teacher' ? teacherNavigationItems : studentNavigationItems
 
 
   // Solo mostrar header cuando hay sesión activa
@@ -185,18 +238,7 @@ export default function Header(props: HeaderProps = {}) {
 
           {/* Lado derecho - Acciones + Usuario */}
           <div className="flex items-center space-x-3">
-            {/* Botones de acción rápida */}
-            <div className="hidden lg:flex items-center space-x-2">
-              <Button variant="ghost" size="sm" title="Buscar">
-                <Search className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" title="Notificaciones">
-                <Bell className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" title="Agregar tarea">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
+            {/* Botones de acción rápida - Eliminados por no tener funcionalidad */}
 
             {/* Badges de rol */}
             <div className="hidden sm:flex items-center gap-2">

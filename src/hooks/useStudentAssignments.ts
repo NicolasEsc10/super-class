@@ -39,6 +39,9 @@ interface UseStudentAssignmentsReturn {
   completedAssignments: StudentAssignment[]
   lateAssignments: StudentAssignment[]
   upcomingAssignments: StudentAssignment[]
+  
+  // Utilidades
+  assignmentUtils: typeof assignmentUtils
 }
 
 // Cache global para evitar peticiones repetidas
@@ -249,7 +252,8 @@ export function useStudentAssignments(): UseStudentAssignmentsReturn {
     pendingAssignments,
     completedAssignments,
     lateAssignments,
-    upcomingAssignments
+    upcomingAssignments,
+    assignmentUtils
   }
 }
 
